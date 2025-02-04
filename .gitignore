@@ -1,0 +1,8 @@
+# Ignore vendor dependencies
+/vendor
+
+# Ignore Composer's lock file (sometimes included, depends on workflow)
+composer.lock
+
+# Ignore configuration files containing sensitive data (rename these in production)
+/.env

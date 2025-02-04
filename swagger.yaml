@@ -1,0 +1,192 @@
+openapi: 3.0.0
+info:
+  title: Vestiaire Collective API
+  version: 1.0.0
+  description: API for Authorization, Capture, and Refund transactions
+
+paths:
+  /authorize:
+    post:
+      summary: Authorize a transaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - card_number
+                - expiry_date
+                - cvv
+              properties:
+                amount:
+                  type: integer
+                  description: Transaction amount
+                  example: 155
+                card_number:
+                  type: string
+                  description: Card number
+                  example: 5111111111111111
+                expiry_date:
+                  type: string
+                  description: Card expiry date (MM/YY)
+                  example: 11/26
+                cvv:
+                  type: string
+                  description: Card CVV
+                  example: 414
+      responses:
+        '200':
+          description: Authorization successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizationResponse'
+        '400':
+          description: Bad Request (missing or invalid fields)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /capture:
+    post:
+      summary: Capture a previously authorized transaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - auth_token
+                - amount
+              properties:
+                auth_token:
+                  type: string
+                  description: Authorization token (returned by /authorize)
+                  example: trx_67a130141e993
+                amount:
+                  type: integer
+                  description: Capture amount
+                  example: 400
+      responses:
+        '200':
+          description: Capture successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaptureResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found (e.g., auth_token not found)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /refund:
+    post:
+      summary: Refund a captured transaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - transaction_id
+                - amount
+              properties:
+                transaction_id:
+                  type: string
+                  description: Capture transaction ID (returned by /capture)
+                  example: cap_67a13019b553d
+                amount:
+                  type: integer
+                  description: Refund amount
+                  example: 100
+      responses:
+        '200':
+          description: Refund successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found (e.g., transaction_id not found)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+          example: Invalid request data.
+
+    AuthorizationResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Transaction status (e.g., "success")
+          example: success
+        auth_token:
+          type: string
+          description: Authorization token
+          example: trx_67a130141e993
+
+    CaptureResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Transaction status (e.g., "success")
+          example: success
+        transaction_id:
+          type: string
+          description: Capture transaction ID
+          example: cap_67a13019b553d
+
+    RefundResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Transaction status (e.g., "success")
+          example: success
+        transaction_id:
+          type: string
+          description: Refund transaction ID
+          example: ref_78b2412ab645e
